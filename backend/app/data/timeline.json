@@ -1,0 +1,43 @@
+{
+  "leopold": [
+    {
+      "episode": "Calypso",
+      "location": "7 Eccles Street",
+      "description": "Prepares breakfast",
+      "start_minute": 480,
+      "end_minute": 540
+    },
+    {
+      "episode": "Lotus Eaters",
+      "location": "Post Office",
+      "description": "Collects letter and wanders",
+      "start_minute": 540,
+      "end_minute": 600
+    }
+  ],
+  "stephen": [
+    {
+      "episode": "Telemachus",
+      "location": "Martello Tower",
+      "description": "Morning with Buck Mulligan",
+      "start_minute": 480,
+      "end_minute": 540
+    },
+    {
+      "episode": "Nestor",
+      "location": "School",
+      "description": "Teaching history",
+      "start_minute": 540,
+      "end_minute": 600
+    }
+  ],
+  "molly": [
+    {
+      "episode": "Penelope",
+      "location": "Bedroom",
+      "description": "Resting and internal monologue",
+      "start_minute": 1320,
+      "end_minute": 1440
+    }
+  ]
+}
