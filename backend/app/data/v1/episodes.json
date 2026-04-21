@@ -1,0 +1,14 @@
+{
+    "episodes": [
+      {
+        "id": "telemachus",
+        "display_name": "Telemachus",
+        "pov": ["stephen"],
+        "primary_locations": ["martello_tower_sandycove"],
+        "time_policy": {
+          "clock_time": "explicit_only",
+          "time_bucket": "explicit_only"
+        }
+      }
+    ]
+  }

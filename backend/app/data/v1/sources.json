@@ -1,0 +1,20 @@
+{
+    "sources": [
+      {
+        "id": "ulysses_gabler",
+        "type": "primary",
+        "title": "Ulysses",
+        "editor": "Hans Walter Gabler",
+        "short_name": "Gabler",
+        "notes": "Primary text reference backbone for this project."
+      },
+      {
+        "id": "gilbert_ulysses",
+        "type": "secondary",
+        "title": "James Joyce's Ulysses: A Study",
+        "author": "Stuart Gilbert",
+        "short_name": "Gilbert",
+        "notes": "Secondary reference: store only references + your paraphrase (no long quotes)."
+      }
+    ]
+  }

@@ -1,0 +1,13 @@
+{
+    "image": { "width": 1920, "height": 1080 },
+    "bounds": {
+      "lat_top": 53.370,
+      "lat_bottom": 53.280,
+      "lon_left": -6.320,
+      "lon_right": -6.080
+    },
+    "control_points": {
+      "Martello Tower": { "lat": 53.2893, "lon": -6.1133, "xPct": null, "yPct": null },
+      "Post Office": { "lat": 53.3498, "lon": -6.2603, "xPct": null, "yPct": null }
+    }
+  }

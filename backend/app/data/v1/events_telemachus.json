@@ -1,0 +1,42 @@
+{
+    "events": [
+      {
+        "id": "telemachus_0001",
+        "episode_id": "telemachus",
+        "characters": ["stephen", "buck_mulligan", "haines"],
+        "time": {
+          "explicit_clock": null,
+          "explicit_bucket": "morning",
+          "episode_label": "morning (tower)"
+        },
+        "location": {
+          "location_id": "martello_tower_sandycove",
+          "explicit_in_text": true
+        },
+        "summary": "Stephen begins the day at the Martello Tower with Buck Mulligan and Haines.",
+        "claims": [
+          {
+            "type": "setting",
+            "certainty": "explicit",
+            "citations": [
+              {
+                "source_id": "ulysses_gabler",
+                "gabler_page": null,
+                "episode_anchor": {
+                  "anchor_id": "telemachus-open",
+                  "anchor_text": "Stately, plump Buck Mulligan"
+                }
+              }
+            ]
+          }
+        ],
+        "secondary_references": [
+          {
+            "source_id": "gilbert_ulysses",
+            "reference": null,
+            "paraphrase": null
+          }
+        ]
+      }
+    ]
+  }

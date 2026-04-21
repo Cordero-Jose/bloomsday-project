@@ -1,0 +1,13 @@
+{
+    "Martello Tower": { "lat": 53.2893, "lon": -6.1133 },
+    "7 Eccles Street": { "lat": 53.3609, "lon": -6.2715 },
+    "Post Office": { "lat": 53.3498, "lon": -6.2603 },
+    "Bedroom": { "lat": 53.3609, "lon": -6.2715 },
+  
+    "Glasnevin Cemetery": { "lat": 53.3658, "lon": -6.2763 },
+    "Davy Byrne's Pub": { "lat": 53.3422, "lon": -6.2590 },
+    "National Library": { "lat": 53.3409, "lon": -6.2546 },
+    "Sandymount Strand": { "lat": 53.3350, "lon": -6.2110 },
+    "Dalkey School": { "lat": 53.2770, "lon": -6.1030 },
+    "Nighttown": { "lat": 53.3500, "lon": -6.2430 }
+  }

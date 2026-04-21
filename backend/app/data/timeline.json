@@ -13,6 +13,34 @@
       "description": "Collects letter and wanders",
       "start_minute": 540,
       "end_minute": 600
+    },
+    {
+      "episode": "Hades",
+      "location": "Glasnevin Cemetery",
+      "description": "Funeral procession and burial",
+      "start_minute": 600,
+      "end_minute": 690
+    },
+    {
+      "episode": "Lestrygonians",
+      "location": "Davy Byrne's Pub",
+      "description": "Lunch and observation",
+      "start_minute": 690,
+      "end_minute": 750
+    },
+    {
+      "episode": "Scylla and Charybdis",
+      "location": "National Library",
+      "description": "Library discussion",
+      "start_minute": 870,
+      "end_minute": 930
+    },
+    {
+      "episode": "Nausicaa",
+      "location": "Sandymount Strand",
+      "description": "Evening at the strand",
+      "start_minute": 1200,
+      "end_minute": 1260
     }
   ],
   "stephen": [
@@ -25,10 +53,31 @@
     },
     {
       "episode": "Nestor",
-      "location": "School",
+      "location": "Dalkey School",
       "description": "Teaching history",
       "start_minute": 540,
       "end_minute": 600
+    },
+    {
+      "episode": "Proteus",
+      "location": "Sandymount Strand",
+      "description": "Walking and reflection",
+      "start_minute": 660,
+      "end_minute": 720
+    },
+    {
+      "episode": "Scylla and Charybdis",
+      "location": "National Library",
+      "description": "Theory and argument",
+      "start_minute": 870,
+      "end_minute": 930
+    },
+    {
+      "episode": "Circe",
+      "location": "Nighttown",
+      "description": "Hallucination and confrontation",
+      "start_minute": 1320,
+      "end_minute": 1380
     }
   ],
   "molly": [

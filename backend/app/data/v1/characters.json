@@ -1,0 +1,10 @@
+{
+    "characters": [
+      { "id": "stephen", "display_name": "Stephen", "primary": true },
+      { "id": "leopold", "display_name": "Leopold", "primary": true },
+      { "id": "molly", "display_name": "Molly", "primary": true },
+  
+      { "id": "buck_mulligan", "display_name": "Buck Mulligan", "primary": false },
+      { "id": "haines", "display_name": "Haines", "primary": false }
+    ]
+  }
