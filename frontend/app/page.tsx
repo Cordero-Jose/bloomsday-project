@@ -58,9 +58,7 @@ export default function Home() {
       {/* Characters (clickable) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl">
         {data?.characters &&
-          Object.entries(data.characters).map(([name, value]: any) => {
-            const character = value as CharacterState;
-
+          Object.entries(data.characters).map(([name]: any) => {
             return (
               <Link
                 key={name}
@@ -68,16 +66,7 @@ export default function Home() {
                 className="block"
               >
                 <div className="w-full min-h-[130px] bg-white/10 backdrop-blur-lg p-5 rounded-2xl shadow-lg flex flex-col justify-center text-center hover:bg-white/15 transition">
-                  <h2 className="text-xl capitalize mb-3">{name}</h2>
-
-                  {character.status === "active" ? (
-                    <>
-                      <p className="text-sm font-medium">{character.event?.episode}</p>
-                      <p className="text-xs opacity-70">{character.event?.location}</p>
-                    </>
-                  ) : (
-                    <p className="text-sm italic opacity-80">{character.message}</p>
-                  )}
+                  <h2 className="text-xl capitalize">{name}</h2>
                 </div>
               </Link>
             );
