@@ -23,3 +23,13 @@ app.include_router(timeline_router)
 
 # ✅ Canon API (read-only)
 app.include_router(v1_router, prefix="/v1", tags=["v1"])
+
+
+@app.get("/")
+def root():
+    return {
+        "name": "Bloomsday Project API",
+        "status": "ok",
+        "health": "/health",
+        "docs": "/docs",
+    }
