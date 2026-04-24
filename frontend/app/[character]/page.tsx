@@ -4,6 +4,24 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 
+const CHARACTER_DISPLAY_NAMES: Record<string, string> = {
+  leopold: "Leopold Bloom",
+  stephen: "Stephen Dedalus",
+  molly: "Molly Bloom",
+  buck_mulligan: "Buck Mulligan",
+  haines: "Haines",
+};
+
+function getCharacterDisplayName(characterId: string) {
+  return (
+    CHARACTER_DISPLAY_NAMES[characterId] ??
+    characterId
+      .split("_")
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ")
+  );
+}
+
 function minutesToTime(minutes: number) {
   const h = Math.floor(minutes / 60)
     .toString()
@@ -68,6 +86,7 @@ function extractCitations(ev: any) {
 export default function CharacterPage() {
   const params = useParams();
   const character = useMemo(() => String(params.character ?? ""), [params]);
+  const displayName = useMemo(() => getCharacterDisplayName(character), [character]);
 
   // Core state
   const [time, setTime] = useState("08:30");
@@ -102,8 +121,8 @@ export default function CharacterPage() {
           ← Back
         </Link>
 
-        <h1 className="text-2xl font-serif tracking-wide capitalize">
-          {character}
+        <h1 className="text-2xl font-serif tracking-wide">
+          {displayName}
         </h1>
 
         <div className="flex items-center gap-2">

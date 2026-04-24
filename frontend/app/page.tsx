@@ -3,14 +3,23 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-type CharacterState = {
-  status: string;
-  event?: {
-    episode: string;
-    location: string;
-  };
-  message?: string;
+const CHARACTER_DISPLAY_NAMES: Record<string, string> = {
+  leopold: "Leopold Bloom",
+  stephen: "Stephen Dedalus",
+  molly: "Molly Bloom",
+  buck_mulligan: "Buck Mulligan",
+  haines: "Haines",
 };
+
+function getCharacterDisplayName(characterId: string) {
+  return (
+    CHARACTER_DISPLAY_NAMES[characterId] ??
+    characterId
+      .split("_")
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ")
+  );
+}
 
 export default function Home() {
   const [data, setData] = useState<any>(null);
@@ -66,7 +75,7 @@ export default function Home() {
                 className="block"
               >
                 <div className="w-full min-h-[130px] bg-white/10 backdrop-blur-lg p-5 rounded-2xl shadow-lg flex flex-col justify-center text-center hover:bg-white/15 transition">
-                  <h2 className="text-xl capitalize">{name}</h2>
+                  <h2 className="text-xl">{getCharacterDisplayName(name)}</h2>
                 </div>
               </Link>
             );
