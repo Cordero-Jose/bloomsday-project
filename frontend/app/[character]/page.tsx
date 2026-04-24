@@ -43,27 +43,6 @@ type CanonEvent = {
   claims?: any[];
 };
 
-function latLonToXY(
-  coords: Coords,
-  bounds: {
-    lat_top: number;
-    lat_bottom: number;
-    lon_left: number;
-    lon_right: number;
-  },
-  img: { width: number; height: number }
-) {
-  const x01 =
-    (coords.lon - bounds.lon_left) / (bounds.lon_right - bounds.lon_left);
-  const y01 =
-    (bounds.lat_top - coords.lat) / (bounds.lat_top - bounds.lat_bottom);
-
-  return {
-    x: x01 * img.width,
-    y: y01 * img.height,
-  };
-}
-
 function extractCitations(ev: any) {
   const claims = Array.isArray(ev?.claims) ? ev.claims : [];
   const citations: Array<{
@@ -98,21 +77,6 @@ export default function CharacterPage() {
   const [canonMode, setCanonMode] = useState(false);
   const [canonEvents, setCanonEvents] = useState<CanonEvent[]>([]);
 
-  // Map calibration config (from /public)
-  const [cal, setCal] = useState<any>(null);
-
-  // Calibration click mode
-  const [calibrateMode, setCalibrateMode] = useState(false);
-  const [lastClick, setLastClick] = useState<{ xPct: number; yPct: number } | null>(
-    null
-  );
-
-  // NEW: Pan/zoom state (this is the useState you couldn’t find)
-  const [zoom, setZoom] = useState(1);
-  const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [isPanning, setIsPanning] = useState(false);
-  const [panStart, setPanStart] = useState<{ x: number; y: number } | null>(null);
-
   // Fetch current-state for the slider time
   useEffect(() => {
     fetch(`/api/current-state?time=${time}`)
@@ -128,20 +92,7 @@ export default function CharacterPage() {
       .catch(() => setCanonEvents([]));
   }, []);
 
-  // Load map calibration JSON
-  useEffect(() => {
-    fetch("/maps/dublin-1906.calibration.json")
-      .then((r) => r.json())
-      .then(setCal)
-      .catch(() => setCal(null));
-  }, []);
-
   const characterState: CharacterState | null = data?.characters?.[character] ?? null;
-
-  const activeCoords: Coords | null =
-    characterState?.status === "active"
-      ? characterState.event?.coords ?? null
-      : null;
 
   return (
     <main className="min-h-screen bg-[#0b1f3a] text-white flex flex-col items-center p-8">
@@ -163,149 +114,19 @@ export default function CharacterPage() {
             {canonMode ? "Hide canon" : "Canon mode"}
           </button>
 
-          <button
-            onClick={() => setCalibrateMode((v) => !v)}
-            className="text-sm bg-white/10 hover:bg-white/15 transition px-3 py-2 rounded-lg"
-          >
-            {calibrateMode ? "Calibrating…" : "Calibration mode"}
-          </button>
-
-          {/* Optional: quick reset */}
-          <button
-            onClick={() => {
-              setZoom(1);
-              setPan({ x: 0, y: 0 });
-            }}
-            className="text-sm bg-white/10 hover:bg-white/15 transition px-3 py-2 rounded-lg"
-          >
-            Reset view
-          </button>
         </div>
       </div>
 
-      {/* Map (pan/zoom + dot overlay + calibration click) */}
-      <div className="w-full max-w-6xl rounded-2xl overflow-hidden shadow-lg bg-black/20 mb-2">
-        <div
-          className="relative w-full h-[420px] bg-black/10"
-          onMouseDown={(e) => {
-            setIsPanning(true);
-            setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
-          }}
-          onMouseMove={(e) => {
-            if (!isPanning || !panStart) return;
-            setPan({ x: e.clientX - panStart.x, y: e.clientY - panStart.y });
-          }}
-          onMouseUp={() => {
-            setIsPanning(false);
-            setPanStart(null);
-          }}
-          onMouseLeave={() => {
-            setIsPanning(false);
-            setPanStart(null);
-          }}
-          onWheel={(e) => {
-            e.preventDefault();
-            const delta = -e.deltaY;
-            const factor = delta > 0 ? 1.08 : 0.92;
-            setZoom((z) => Math.min(6, Math.max(0.6, z * factor)));
-          }}
-          style={{
-            cursor: isPanning ? "grabbing" : "grab",
-            touchAction: "none",
-          }}
-        >
-          {/* This inner layer is what we pan/zoom */}
-          <div
-            className="absolute inset-0"
-            style={{
-              transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-              transformOrigin: "0 0",
-            }}
-            onClick={(e) => {
-              // calibration click (in IMAGE coordinate space)
-              if (!calibrateMode) return;
-
-              const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
-              const x = e.clientX - rect.left;
-              const y = e.clientY - rect.top;
-
-              const imgX = x / zoom;
-              const imgY = y / zoom;
-
-              if (!cal?.image?.width || !cal?.image?.height) return;
-
-              const xPct = (imgX / cal.image.width) * 100;
-              const yPct = (imgY / cal.image.height) * 100;
-
-              setLastClick({ xPct, yPct });
-            }}
-          >
-            <img
-              src="/maps/dublin-1906.jpg"
-              alt="Dublin map (c. 1906 style)"
-              draggable={false}
-              style={{
-                width: cal?.image?.width ? `${cal.image.width}px` : "1920px",
-                height: cal?.image?.height ? `${cal.image.height}px` : "1080px",
-                userSelect: "none",
-                pointerEvents: "none",
-              }}
-            />
-
-            {/* Dot overlay (IMAGE coordinate space) */}
-            {activeCoords &&
-              cal &&
-              (() => {
-                const { x, y } = latLonToXY(activeCoords, cal.bounds, cal.image);
-                return (
-                  <div
-                    title={`${activeCoords.lat.toFixed(4)}, ${activeCoords.lon.toFixed(4)}`}
-                    className="absolute w-4 h-4 rounded-full bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.9)] border border-white"
-                    style={{
-                      left: `${x}px`,
-                      top: `${y}px`,
-                      transform: "translate(-50%, -50%)",
-                    }}
-                  />
-                );
-              })()}
-
-            {/* Calibration click marker (IMAGE coordinate space) */}
-            {calibrateMode &&
-              lastClick &&
-              cal?.image?.width &&
-              cal?.image?.height && (
-                <div
-                  className="absolute w-3 h-3 rounded-full bg-yellow-300 border border-black"
-                  style={{
-                    left: `${(lastClick.xPct / 100) * cal.image.width}px`,
-                    top: `${(lastClick.yPct / 100) * cal.image.height}px`,
-                    transform: "translate(-50%, -50%)",
-                  }}
-                  title={`xPct=${lastClick.xPct.toFixed(2)} yPct=${lastClick.yPct.toFixed(2)}`}
-                />
-              )}
-          </div>
-
-          {/* HUD */}
-          <div className="absolute bottom-3 right-3 text-[11px] bg-black/50 px-2 py-1 rounded">
-            zoom: {zoom.toFixed(2)}
-          </div>
-        </div>
+      {/* Map */}
+      <div className="w-full max-w-6xl rounded-2xl overflow-hidden shadow-lg bg-black/20 mb-6 border border-white/10">
+        <iframe
+          src="https://www.google.com/maps/d/embed?mid=1S3bB22Dr4sBjckxj_jI17tMnWg0&ehbc=2E312F"
+          title="Bloomsday Character Map"
+          className="w-full h-[480px]"
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+        />
       </div>
-
-      {calibrateMode && (
-        <div className="w-full max-w-6xl mb-6 text-sm opacity-80">
-          Tip: zoom in, then click a known landmark to record xPct/yPct.
-          {lastClick ? (
-            <div className="mt-2 font-mono text-xs opacity-90">
-              last click: xPct={lastClick.xPct.toFixed(2)} yPct={lastClick.yPct.toFixed(2)}
-            </div>
-          ) : (
-            <div className="mt-2 font-mono text-xs opacity-70">last click: (none)</div>
-          )}
-        </div>
-      )}
 
       {/* Slider */}
       <div className="w-full max-w-md mb-8">
