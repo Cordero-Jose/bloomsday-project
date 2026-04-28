@@ -11,6 +11,20 @@ const CHARACTER_DISPLAY_NAMES: Record<string, string> = {
   haines: "Haines",
 };
 
+const CHARACTER_IMAGES: Record<string, string> = {
+  leopold: "/characters/leopold-bloom.png",
+  stephen: "/characters/stephen-dedalus.png",
+  molly: "/characters/molly-bloom.png",
+};
+
+const CHARACTER_CARD_ORDER: Record<string, number> = {
+  leopold: 0,
+  molly: 1,
+  stephen: 2,
+  buck_mulligan: 3,
+  haines: 4,
+};
+
 function getCharacterDisplayName(characterId: string) {
   return (
     CHARACTER_DISPLAY_NAMES[characterId] ??
@@ -267,15 +281,35 @@ export default function Home() {
       {/* Characters (clickable) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl">
         {data?.characters &&
-          Object.entries(data.characters).map(([name]: any) => {
+          Object.entries(data.characters)
+            .sort(([leftName], [rightName]) => {
+              const leftOrder = CHARACTER_CARD_ORDER[leftName] ?? 99;
+              const rightOrder = CHARACTER_CARD_ORDER[rightName] ?? 99;
+              return leftOrder - rightOrder;
+            })
+            .map(([name]: any) => {
+            const characterImage = CHARACTER_IMAGES[name];
+
             return (
               <Link
                 key={name}
                 href={`/${encodeURIComponent(name)}`}
                 className="block"
               >
-                <div className="w-full min-h-[130px] bg-white/10 backdrop-blur-lg p-5 rounded-2xl shadow-lg flex flex-col justify-center text-center hover:bg-white/15 transition">
-                  <h2 className="text-xl">{getCharacterDisplayName(name)}</h2>
+                <div className="relative w-full min-h-[420px] overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-b from-[#17345d]/90 to-[#0c203a]/95 p-5 text-center shadow-2xl transition hover:-translate-y-1 hover:shadow-[0_30px_80px_rgba(0,0,0,0.35)]">
+                  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(255,255,255,0.10),transparent_42%),radial-gradient(circle_at_50%_100%,rgba(255,255,255,0.08),transparent_36%)]" />
+                  {characterImage && (
+                    <div className="relative z-10 mb-2 flex w-full flex-1 items-center justify-center pt-2">
+                      <img
+                        src={characterImage}
+                        alt={getCharacterDisplayName(name)}
+                        className="h-[340px] w-auto max-w-none object-contain drop-shadow-[0_20px_30px_rgba(0,0,0,0.45)]"
+                      />
+                    </div>
+                  )}
+                  <h2 className="relative z-10 text-2xl leading-none text-white/95">
+                    {getCharacterDisplayName(name)}
+                  </h2>
                 </div>
               </Link>
             );
