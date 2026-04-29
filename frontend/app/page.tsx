@@ -214,7 +214,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-[#0b1f3a] text-white flex flex-col items-center p-8">
       {/* Title */}
-      <h1 className="text-4xl font-serif tracking-wide mb-10 text-center">
+      <h1 className="text-4xl font-serif tracking-wide mb-6 text-center">
         Ulysses — A Day in Motion
       </h1>
 
@@ -256,13 +256,16 @@ export default function Home() {
       <audio ref={audioRef} src="/sounds/ocean-waves.mp3" aria-hidden="true" />
 
       {/* Visual block */}
-      <div className="relative w-full max-w-2xl h-40 mb-12">
+      <div className="relative w-full max-w-3xl h-52 mb-2">
+        {/* Glow behind the tower */}
+        <div className="absolute bottom-8 left-1/2 h-44 w-44 -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,241,190,0.95)_0%,rgba(137,196,255,0.55)_35%,rgba(13,35,64,0)_72%)] blur-3xl opacity-95" />
+
         {/* Waves */}
         <div className="absolute bottom-0 w-full h-20 bg-blue-900/40 rounded-t-full blur-xl animate-pulse"></div>
 
         {/* Tower */}
-        <div className="absolute bottom-16 left-1/2 -translate-x-1/2">
-          <svg width="120" height="140" viewBox="0 0 120 140" className="opacity-90">
+        <div className="absolute bottom-14 left-1/2 -translate-x-1/2">
+          <svg width="132" height="152" viewBox="0 0 120 140" className="opacity-95 drop-shadow-[0_0_28px_rgba(255,244,200,0.35)]">
             {/* Cliff */}
             <path
               d="M10 120 L110 120 L90 90 L70 100 L50 80 L30 95 Z"
@@ -279,7 +282,7 @@ export default function Home() {
       </div>
 
       {/* Characters (clickable) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl">
+      <div className="-mt-8 grid grid-cols-1 md:grid-cols-3 gap-5 w-full max-w-6xl">
         {data?.characters &&
           Object.entries(data.characters)
             .sort(([leftName], [rightName]) => {
@@ -296,14 +299,14 @@ export default function Home() {
                 href={`/${encodeURIComponent(name)}`}
                 className="block"
               >
-                <div className="relative w-full min-h-[420px] overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-b from-[#17345d]/90 to-[#0c203a]/95 p-5 text-center shadow-2xl transition hover:-translate-y-1 hover:shadow-[0_30px_80px_rgba(0,0,0,0.35)]">
+                <div className="relative w-full min-h-[360px] overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-b from-[#17345d]/90 to-[#0c203a]/95 p-5 text-center shadow-2xl transition hover:-translate-y-1 hover:shadow-[0_30px_80px_rgba(0,0,0,0.35)]">
                   <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(255,255,255,0.10),transparent_42%),radial-gradient(circle_at_50%_100%,rgba(255,255,255,0.08),transparent_36%)]" />
                   {characterImage && (
-                    <div className="relative z-10 mb-2 flex w-full flex-1 items-center justify-center pt-2">
+                    <div className="relative z-10 mb-2 flex w-full flex-1 items-center justify-center pt-1">
                       <img
                         src={characterImage}
                         alt={getCharacterDisplayName(name)}
-                        className="h-[340px] w-auto max-w-none object-contain drop-shadow-[0_20px_30px_rgba(0,0,0,0.45)]"
+                        className="h-[290px] w-auto max-w-none object-contain drop-shadow-[0_20px_30px_rgba(0,0,0,0.45)]"
                       />
                     </div>
                   )}
