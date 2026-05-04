@@ -79,6 +79,12 @@ type CharacterState = {
     description?: string;
     coords?: Coords | null;
   };
+  next_event?: {
+    episode: string;
+    location: string;
+    description?: string;
+    coords?: Coords | null;
+  } | null;
   message?: string;
 };
 
@@ -134,12 +140,16 @@ export default function CharacterPage() {
   // Canon panel
   const [canonMode, setCanonMode] = useState(false);
   const [canonEvents, setCanonEvents] = useState<CanonEvent[]>([]);
+  const [useGeneratedTimeline, setUseGeneratedTimeline] = useState(true);
 
   // Map refs
   const mapRef = useRef<any>(null);
   const markerRef = useRef<any>(null);
+  const travelDotRef = useRef<any>(null);
+  const travelLineRef = useRef<any>(null);
   const locationMarkersRef = useRef<Map<string, any>>(new Map());
   const mapContainerRef = useRef<HTMLDivElement>(null);
+  const travelFrameRef = useRef<number | null>(null);
 
   const currentCostaRicaTime = useMemo(
     () => formatTimeInZone(clockNow, COSTA_RICA_TIME_ZONE),
@@ -238,7 +248,10 @@ export default function CharacterPage() {
   useEffect(() => {
     let cancelled = false;
 
-    fetch(`/api/current-state?character=${encodeURIComponent(character)}&time=${encodeURIComponent(time)}`)
+    const timelineMode = useGeneratedTimeline ? "generated" : "standard";
+    fetch(
+      `/api/current-state?character=${encodeURIComponent(character)}&time=${encodeURIComponent(time)}&mode=${encodeURIComponent(timelineMode)}`,
+    )
       .then((res) => res.json())
       .then((json) => {
         if (!cancelled) {
@@ -254,7 +267,7 @@ export default function CharacterPage() {
     return () => {
       cancelled = true;
     };
-  }, [character, time]);
+  }, [character, time, useGeneratedTimeline]);
 
   const characterState: CharacterState | null = data?.event ?? data?.characters?.[character] ?? null;
   const activeEpisodeId = useMemo(
@@ -293,8 +306,24 @@ export default function CharacterPage() {
   useEffect(() => {
     if (!mapRef.current) return;
 
+    if (travelFrameRef.current) {
+      window.cancelAnimationFrame(travelFrameRef.current);
+      travelFrameRef.current = null;
+    }
+
+    if (travelLineRef.current) {
+      travelLineRef.current.setMap(null);
+      travelLineRef.current = null;
+    }
+
+    if (travelDotRef.current) {
+      travelDotRef.current.setMap(null);
+      travelDotRef.current = null;
+    }
+
     const coords = characterState?.event?.coords;
     const location = characterState?.event?.location;
+    const nextCoords = characterState?.next_event?.coords;
 
     if (coords) {
       const position = { lat: coords.lat, lng: coords.lon };
@@ -340,12 +369,58 @@ export default function CharacterPage() {
 
       // Pan map to marker
       mapRef.current.panTo(position);
+
+      // Draw travel path to the next waypoint / stop and animate a dot along it.
+      if (nextCoords) {
+        const nextPosition = { lat: nextCoords.lat, lng: nextCoords.lon };
+
+        travelLineRef.current = new (window as any).google.maps.Polyline({
+          path: [position, nextPosition],
+          geodesic: true,
+          strokeColor: "#f59e0b",
+          strokeOpacity: 0.9,
+          strokeWeight: 4,
+          map: mapRef.current,
+        });
+
+        travelDotRef.current = new (window as any).google.maps.Marker({
+          position,
+          map: mapRef.current,
+          title: "Travel path",
+          icon: {
+            path: (window as any).google.maps.SymbolPath.CIRCLE,
+            scale: 8,
+            fillColor: "#fbbf24",
+            fillOpacity: 1,
+            strokeColor: "#111827",
+            strokeWeight: 2,
+          },
+          zIndex: 999,
+        });
+
+        const start = performance.now();
+        const duration = 4000;
+
+        const animate = (timestamp: number) => {
+          if (!travelDotRef.current) return;
+
+          const elapsed = (timestamp - start) % duration;
+          const t = elapsed / duration;
+          const lat = position.lat + (nextPosition.lat - position.lat) * t;
+          const lng = position.lng + (nextPosition.lng - position.lng) * t;
+
+          travelDotRef.current.setPosition({ lat, lng });
+          travelFrameRef.current = window.requestAnimationFrame(animate);
+        };
+
+        travelFrameRef.current = window.requestAnimationFrame(animate);
+      }
     } else if (markerRef.current) {
       // Remove marker if no coords
       markerRef.current.setMap(null);
       markerRef.current = null;
     }
-  }, [characterState?.event?.coords, characterState?.event?.location, displayName]);
+  }, [characterState?.event?.coords, characterState?.event?.location, characterState?.next_event?.coords, displayName]);
 
   return (
     <main className="min-h-screen bg-[#0b1f3a] text-white flex flex-col items-center p-8">
@@ -361,6 +436,13 @@ export default function CharacterPage() {
           </h1>
 
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setUseGeneratedTimeline((v) => !v)}
+              className={`text-sm transition px-3 py-2 rounded-lg ${useGeneratedTimeline ? "bg-emerald-500/30 hover:bg-emerald-500/40" : "bg-white/10 hover:bg-white/15"}`}
+            >
+              {useGeneratedTimeline ? "15-min path on" : "Standard timeline on"}
+            </button>
+
             <button
               onClick={() => setCanonMode((v) => !v)}
               className="text-sm bg-white/10 hover:bg-white/15 transition px-3 py-2 rounded-lg"
@@ -386,6 +468,9 @@ export default function CharacterPage() {
           </p>
           <p className="mt-1 text-xs opacity-70">
             The slider uses Dublin time, so the selected character stays aligned with the chapter timeline.
+            {useGeneratedTimeline
+              ? " 15-minute waypoint data is enabled, so the map shows a smoother travel path between stops."
+              : " Standard timeline data is enabled, so the map jumps between major story anchors."}
           </p>
         </div>
       </div>
@@ -397,6 +482,12 @@ export default function CharacterPage() {
           className="w-full h-[480px]"
           style={{ background: "#0b1f3a" }}
         />
+      </div>
+
+      <div className="w-full max-w-6xl mb-6 flex flex-wrap items-center gap-3 text-xs text-white/80">
+        <span className="rounded-full bg-red-500/20 px-3 py-1 border border-red-400/30">Red dot = current character position</span>
+        <span className="rounded-full bg-amber-500/20 px-3 py-1 border border-amber-400/30">Amber dot + line = moving travel path</span>
+        <span className="rounded-full bg-blue-500/20 px-3 py-1 border border-blue-400/30">Blue dots = Dublin landmarks</span>
       </div>
 
       {/* Slider */}
@@ -422,6 +513,12 @@ export default function CharacterPage() {
               <p className="text-sm opacity-70 mt-1">{characterState.event?.location}</p>
               {characterState.event?.description ? (
                 <p className="text-sm opacity-80 mt-3">{characterState.event.description}</p>
+              ) : null}
+              {characterState.next_event?.location ? (
+                <p className="text-sm opacity-70 mt-2">
+                  Next stop: {characterState.next_event.location}
+                  {characterState.next_event.description ? ` · ${characterState.next_event.description}` : ""}
+                </p>
               ) : null}
               {characterState.event?.coords ? (
                 <p className="text-xs opacity-60 mt-2">

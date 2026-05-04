@@ -26,16 +26,25 @@ def parse_time_to_minutes(time_str: str):
 
 
 def find_event(events, current_minute, character_name):
-    for event in events:
+    for index, event in enumerate(events):
         if event["start_minute"] <= current_minute < event["end_minute"]:
-            coords = LOCATION_COORDS.get(event.get("location"))
+            # Allow events to carry explicit coords (generated waypoints) or fall back to named locations
+            coords = event.get("coords") if event.get("coords") else LOCATION_COORDS.get(event.get("location"))
 
             enriched_event = dict(event)
             enriched_event["coords"] = coords  # {lat, lon} or None
 
+            next_event = None
+            if index + 1 < len(events):
+                raw_next = dict(events[index + 1])
+                next_coords = raw_next.get("coords") if raw_next.get("coords") else LOCATION_COORDS.get(raw_next.get("location"))
+                raw_next["coords"] = next_coords
+                next_event = raw_next
+
             return {
                 "status": "active",
-                "event": enriched_event
+                "event": enriched_event,
+                "next_event": next_event,
             }
 
     return {
@@ -47,7 +56,7 @@ def find_event(events, current_minute, character_name):
     }
 
 
-def get_current_state(character: str = None, time: str = None):
+def get_current_state(character: str = None, time: str = None, mode: str = None):
     now = datetime.now(timezone.utc)
 
     if time:
@@ -57,13 +66,25 @@ def get_current_state(character: str = None, time: str = None):
     else:
         current_minute = now.hour * 60 + now.minute
 
+    # Optionally switch to a generated timeline dataset when requested
+    timelines_source = TIMELINES
+    if mode == "generated":
+        gen_path = DATA_DIR / "timeline.generated.json"
+        if gen_path.exists():
+            try:
+                with gen_path.open("r", encoding="utf-8") as gf:
+                    timelines_source = json.load(gf)
+            except Exception:
+                # Fallback to default TIMELINES on error
+                timelines_source = TIMELINES
+
     if character:
         character = character.lower()
 
-        if character not in TIMELINES:
+        if character not in timelines_source:
             return {"error": "Character not found"}
 
-        event = find_event(TIMELINES[character], current_minute, character)
+        event = find_event(timelines_source[character], current_minute, character)
 
         return {
             "character": character,
@@ -73,7 +94,7 @@ def get_current_state(character: str = None, time: str = None):
         }
 
     result = {}
-    for char, events in TIMELINES.items():
+    for char, events in timelines_source.items():
         result[char] = find_event(events, current_minute, char)
 
     return {

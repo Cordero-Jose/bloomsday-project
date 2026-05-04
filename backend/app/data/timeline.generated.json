@@ -1,0 +1,499 @@
+{
+  "leopold": [
+    {
+      "episode": "Calypso",
+      "location": "7 Eccles Street",
+      "description": "Prepares breakfast",
+      "start_minute": 480,
+      "end_minute": 540
+    },
+    {
+      "episode": "Lotus Eaters",
+      "location": "Post Office",
+      "description": "Collects letter and wanders",
+      "start_minute": 540,
+      "end_minute": 600
+    },
+    {
+      "episode": "Hades",
+      "location": "Glasnevin Cemetery",
+      "description": "Funeral procession and burial",
+      "start_minute": 600,
+      "end_minute": 690
+    },
+    {
+      "episode": "Lestrygonians",
+      "location": "Davy Byrne's Pub",
+      "description": "Lunch and observation",
+      "start_minute": 690,
+      "end_minute": 750
+    },
+    {
+      "episode": "Scylla and Charybdis",
+      "location": "National Library",
+      "description": "Library discussion",
+      "start_minute": 870,
+      "end_minute": 930
+    },
+    {
+      "episode": "Nausicaa",
+      "location": "Sandymount Strand",
+      "description": "Evening at the strand",
+      "start_minute": 1200,
+      "end_minute": 1260
+    }
+  ],
+  "stephen": [
+    {
+      "episode": "Telemachus",
+      "location": "Martello Tower",
+      "description": "Morning with Buck Mulligan",
+      "start_minute": 480,
+      "end_minute": 540
+    },
+    {
+      "episode": "Nestor",
+      "location": "Dalkey School",
+      "description": "Teaching history",
+      "start_minute": 540,
+      "end_minute": 600
+    },
+    {
+      "episode": "Transit",
+      "location": "Between Dalkey School \u2192 Sandymount Strand",
+      "description": "En route from Dalkey School to Sandymount Strand",
+      "start_minute": 615,
+      "end_minute": 629,
+      "coords": {
+        "lat": 53.2915,
+        "lon": -6.13
+      }
+    },
+    {
+      "episode": "Transit",
+      "location": "Between Dalkey School \u2192 Sandymount Strand",
+      "description": "En route from Dalkey School to Sandymount Strand",
+      "start_minute": 630,
+      "end_minute": 644,
+      "coords": {
+        "lat": 53.306,
+        "lon": -6.157
+      }
+    },
+    {
+      "episode": "Transit",
+      "location": "Between Dalkey School \u2192 Sandymount Strand",
+      "description": "En route from Dalkey School to Sandymount Strand",
+      "start_minute": 645,
+      "end_minute": 659,
+      "coords": {
+        "lat": 53.3205,
+        "lon": -6.184
+      }
+    },
+    {
+      "episode": "Proteus",
+      "location": "Sandymount Strand",
+      "description": "Walking and reflection",
+      "start_minute": 660,
+      "end_minute": 720
+    },
+    {
+      "episode": "Transit",
+      "location": "Between Sandymount Strand \u2192 National Library",
+      "description": "En route from Sandymount Strand to National Library",
+      "start_minute": 735,
+      "end_minute": 749,
+      "coords": {
+        "lat": 53.33559,
+        "lon": -6.21536
+      }
+    },
+    {
+      "episode": "Transit",
+      "location": "Between Sandymount Strand \u2192 National Library",
+      "description": "En route from Sandymount Strand to National Library",
+      "start_minute": 750,
+      "end_minute": 764,
+      "coords": {
+        "lat": 53.33618,
+        "lon": -6.21972
+      }
+    },
+    {
+      "episode": "Transit",
+      "location": "Between Sandymount Strand \u2192 National Library",
+      "description": "En route from Sandymount Strand to National Library",
+      "start_minute": 765,
+      "end_minute": 779,
+      "coords": {
+        "lat": 53.33677,
+        "lon": -6.22408
+      }
+    },
+    {
+      "episode": "Transit",
+      "location": "Between Sandymount Strand \u2192 National Library",
+      "description": "En route from Sandymount Strand to National Library",
+      "start_minute": 780,
+      "end_minute": 794,
+      "coords": {
+        "lat": 53.33736,
+        "lon": -6.22844
+      }
+    },
+    {
+      "episode": "Transit",
+      "location": "Between Sandymount Strand \u2192 National Library",
+      "description": "En route from Sandymount Strand to National Library",
+      "start_minute": 795,
+      "end_minute": 809,
+      "coords": {
+        "lat": 53.33795,
+        "lon": -6.2328
+      }
+    },
+    {
+      "episode": "Transit",
+      "location": "Between Sandymount Strand \u2192 National Library",
+      "description": "En route from Sandymount Strand to National Library",
+      "start_minute": 810,
+      "end_minute": 824,
+      "coords": {
+        "lat": 53.33854,
+        "lon": -6.23716
+      }
+    },
+    {
+      "episode": "Transit",
+      "location": "Between Sandymount Strand \u2192 National Library",
+      "description": "En route from Sandymount Strand to National Library",
+      "start_minute": 825,
+      "end_minute": 839,
+      "coords": {
+        "lat": 53.33913,
+        "lon": -6.24152
+      }
+    },
+    {
+      "episode": "Transit",
+      "location": "Between Sandymount Strand \u2192 National Library",
+      "description": "En route from Sandymount Strand to National Library",
+      "start_minute": 840,
+      "end_minute": 854,
+      "coords": {
+        "lat": 53.33972,
+        "lon": -6.24588
+      }
+    },
+    {
+      "episode": "Transit",
+      "location": "Between Sandymount Strand \u2192 National Library",
+      "description": "En route from Sandymount Strand to National Library",
+      "start_minute": 855,
+      "end_minute": 869,
+      "coords": {
+        "lat": 53.34031,
+        "lon": -6.25024
+      }
+    },
+    {
+      "episode": "Scylla and Charybdis",
+      "location": "National Library",
+      "description": "Theory and argument",
+      "start_minute": 870,
+      "end_minute": 930
+    },
+    {
+      "episode": "Transit",
+      "location": "Between National Library \u2192 Nighttown",
+      "description": "En route from National Library to Nighttown",
+      "start_minute": 945,
+      "end_minute": 959,
+      "coords": {
+        "lat": 53.34125,
+        "lon": -6.254154
+      }
+    },
+    {
+      "episode": "Transit",
+      "location": "Between National Library \u2192 Nighttown",
+      "description": "En route from National Library to Nighttown",
+      "start_minute": 960,
+      "end_minute": 974,
+      "coords": {
+        "lat": 53.3416,
+        "lon": -6.253708
+      }
+    },
+    {
+      "episode": "Transit",
+      "location": "Between National Library \u2192 Nighttown",
+      "description": "En route from National Library to Nighttown",
+      "start_minute": 975,
+      "end_minute": 989,
+      "coords": {
+        "lat": 53.34195,
+        "lon": -6.253262
+      }
+    },
+    {
+      "episode": "Transit",
+      "location": "Between National Library \u2192 Nighttown",
+      "description": "En route from National Library to Nighttown",
+      "start_minute": 990,
+      "end_minute": 1004,
+      "coords": {
+        "lat": 53.3423,
+        "lon": -6.252815
+      }
+    },
+    {
+      "episode": "Transit",
+      "location": "Between National Library \u2192 Nighttown",
+      "description": "En route from National Library to Nighttown",
+      "start_minute": 1005,
+      "end_minute": 1019,
+      "coords": {
+        "lat": 53.34265,
+        "lon": -6.252369
+      }
+    },
+    {
+      "episode": "Transit",
+      "location": "Between National Library \u2192 Nighttown",
+      "description": "En route from National Library to Nighttown",
+      "start_minute": 1020,
+      "end_minute": 1034,
+      "coords": {
+        "lat": 53.343,
+        "lon": -6.251923
+      }
+    },
+    {
+      "episode": "Transit",
+      "location": "Between National Library \u2192 Nighttown",
+      "description": "En route from National Library to Nighttown",
+      "start_minute": 1035,
+      "end_minute": 1049,
+      "coords": {
+        "lat": 53.34335,
+        "lon": -6.251477
+      }
+    },
+    {
+      "episode": "Transit",
+      "location": "Between National Library \u2192 Nighttown",
+      "description": "En route from National Library to Nighttown",
+      "start_minute": 1050,
+      "end_minute": 1064,
+      "coords": {
+        "lat": 53.3437,
+        "lon": -6.251031
+      }
+    },
+    {
+      "episode": "Transit",
+      "location": "Between National Library \u2192 Nighttown",
+      "description": "En route from National Library to Nighttown",
+      "start_minute": 1065,
+      "end_minute": 1079,
+      "coords": {
+        "lat": 53.34405,
+        "lon": -6.250585
+      }
+    },
+    {
+      "episode": "Transit",
+      "location": "Between National Library \u2192 Nighttown",
+      "description": "En route from National Library to Nighttown",
+      "start_minute": 1080,
+      "end_minute": 1094,
+      "coords": {
+        "lat": 53.3444,
+        "lon": -6.250138
+      }
+    },
+    {
+      "episode": "Transit",
+      "location": "Between National Library \u2192 Nighttown",
+      "description": "En route from National Library to Nighttown",
+      "start_minute": 1095,
+      "end_minute": 1109,
+      "coords": {
+        "lat": 53.34475,
+        "lon": -6.249692
+      }
+    },
+    {
+      "episode": "Transit",
+      "location": "Between National Library \u2192 Nighttown",
+      "description": "En route from National Library to Nighttown",
+      "start_minute": 1110,
+      "end_minute": 1124,
+      "coords": {
+        "lat": 53.3451,
+        "lon": -6.249246
+      }
+    },
+    {
+      "episode": "Transit",
+      "location": "Between National Library \u2192 Nighttown",
+      "description": "En route from National Library to Nighttown",
+      "start_minute": 1125,
+      "end_minute": 1139,
+      "coords": {
+        "lat": 53.34545,
+        "lon": -6.2488
+      }
+    },
+    {
+      "episode": "Transit",
+      "location": "Between National Library \u2192 Nighttown",
+      "description": "En route from National Library to Nighttown",
+      "start_minute": 1140,
+      "end_minute": 1154,
+      "coords": {
+        "lat": 53.3458,
+        "lon": -6.248354
+      }
+    },
+    {
+      "episode": "Transit",
+      "location": "Between National Library \u2192 Nighttown",
+      "description": "En route from National Library to Nighttown",
+      "start_minute": 1155,
+      "end_minute": 1169,
+      "coords": {
+        "lat": 53.34615,
+        "lon": -6.247908
+      }
+    },
+    {
+      "episode": "Transit",
+      "location": "Between National Library \u2192 Nighttown",
+      "description": "En route from National Library to Nighttown",
+      "start_minute": 1170,
+      "end_minute": 1184,
+      "coords": {
+        "lat": 53.3465,
+        "lon": -6.247462
+      }
+    },
+    {
+      "episode": "Transit",
+      "location": "Between National Library \u2192 Nighttown",
+      "description": "En route from National Library to Nighttown",
+      "start_minute": 1185,
+      "end_minute": 1199,
+      "coords": {
+        "lat": 53.34685,
+        "lon": -6.247015
+      }
+    },
+    {
+      "episode": "Transit",
+      "location": "Between National Library \u2192 Nighttown",
+      "description": "En route from National Library to Nighttown",
+      "start_minute": 1200,
+      "end_minute": 1214,
+      "coords": {
+        "lat": 53.3472,
+        "lon": -6.246569
+      }
+    },
+    {
+      "episode": "Transit",
+      "location": "Between National Library \u2192 Nighttown",
+      "description": "En route from National Library to Nighttown",
+      "start_minute": 1215,
+      "end_minute": 1229,
+      "coords": {
+        "lat": 53.34755,
+        "lon": -6.246123
+      }
+    },
+    {
+      "episode": "Transit",
+      "location": "Between National Library \u2192 Nighttown",
+      "description": "En route from National Library to Nighttown",
+      "start_minute": 1230,
+      "end_minute": 1244,
+      "coords": {
+        "lat": 53.3479,
+        "lon": -6.245677
+      }
+    },
+    {
+      "episode": "Transit",
+      "location": "Between National Library \u2192 Nighttown",
+      "description": "En route from National Library to Nighttown",
+      "start_minute": 1245,
+      "end_minute": 1259,
+      "coords": {
+        "lat": 53.34825,
+        "lon": -6.245231
+      }
+    },
+    {
+      "episode": "Transit",
+      "location": "Between National Library \u2192 Nighttown",
+      "description": "En route from National Library to Nighttown",
+      "start_minute": 1260,
+      "end_minute": 1274,
+      "coords": {
+        "lat": 53.3486,
+        "lon": -6.244785
+      }
+    },
+    {
+      "episode": "Transit",
+      "location": "Between National Library \u2192 Nighttown",
+      "description": "En route from National Library to Nighttown",
+      "start_minute": 1275,
+      "end_minute": 1289,
+      "coords": {
+        "lat": 53.34895,
+        "lon": -6.244338
+      }
+    },
+    {
+      "episode": "Transit",
+      "location": "Between National Library \u2192 Nighttown",
+      "description": "En route from National Library to Nighttown",
+      "start_minute": 1290,
+      "end_minute": 1304,
+      "coords": {
+        "lat": 53.3493,
+        "lon": -6.243892
+      }
+    },
+    {
+      "episode": "Transit",
+      "location": "Between National Library \u2192 Nighttown",
+      "description": "En route from National Library to Nighttown",
+      "start_minute": 1305,
+      "end_minute": 1319,
+      "coords": {
+        "lat": 53.34965,
+        "lon": -6.243446
+      }
+    },
+    {
+      "episode": "Circe",
+      "location": "Nighttown",
+      "description": "Hallucination and confrontation",
+      "start_minute": 1320,
+      "end_minute": 1380
+    }
+  ],
+  "molly": [
+    {
+      "episode": "Penelope",
+      "location": "Bedroom",
+      "description": "Resting and internal monologue",
+      "start_minute": 1320,
+      "end_minute": 1440
+    }
+  ]
+}
