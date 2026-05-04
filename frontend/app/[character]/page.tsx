@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 
 const CHARACTER_DISPLAY_NAMES: Record<string, string> = {
@@ -35,6 +35,40 @@ function timeToMinutes(time: string) {
   return h * 60 + m;
 }
 
+function formatTimeInZone(date: Date, timeZone: string) {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(date);
+}
+
+function slugifyEpisode(episode: string) {
+  return episode
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
+// Google Maps configuration
+const GOOGLE_MAPS_API_KEY = "AIzaSyD_hRUxCbfp9oAUpzkGXVyosIITVYlRrrM";
+const DUBLIN_CENTER = { lat: 53.3398, lng: -6.2603 };
+
+// Dublin locations from the timeline
+const DUBLIN_LOCATIONS = {
+  "Martello Tower": { lat: 53.2893, lon: -6.1133, icon: "🏰" },
+  "7 Eccles Street": { lat: 53.3609, lon: -6.2715, icon: "🏠" },
+  "Post Office": { lat: 53.3498, lon: -6.2603, icon: "📮" },
+  "Glasnevin Cemetery": { lat: 53.3658, lon: -6.2763, icon: "⛪" },
+  "Davy Byrne's Pub": { lat: 53.3422, lon: -6.2590, icon: "🍺" },
+  "National Library": { lat: 53.3409, lon: -6.2546, icon: "📚" },
+  "Sandymount Strand": { lat: 53.3350, lon: -6.2110, icon: "🏖️" },
+  "Dalkey School": { lat: 53.2770, lon: -6.1030, icon: "🎓" },
+  "Nighttown": { lat: 53.3500, lon: -6.2430, icon: "🌙" },
+};
+
 type Coords = { lat: number; lon: number };
 
 type CharacterState = {
@@ -42,6 +76,7 @@ type CharacterState = {
   event?: {
     episode: string;
     location: string;
+    description?: string;
     coords?: Coords | null;
   };
   message?: string;
@@ -88,62 +123,279 @@ export default function CharacterPage() {
   const character = useMemo(() => String(params.character ?? ""), [params]);
   const displayName = useMemo(() => getCharacterDisplayName(character), [character]);
 
+  const DUBLIN_TIME_ZONE = "Europe/Dublin";
+  const COSTA_RICA_TIME_ZONE = "America/Costa_Rica";
+
   // Core state
-  const [time, setTime] = useState("08:30");
+  const [clockNow, setClockNow] = useState(() => new Date());
+  const [time, setTime] = useState(() => formatTimeInZone(new Date(), DUBLIN_TIME_ZONE));
   const [data, setData] = useState<any>(null);
 
   // Canon panel
   const [canonMode, setCanonMode] = useState(false);
   const [canonEvents, setCanonEvents] = useState<CanonEvent[]>([]);
 
-  // Fetch current-state for the slider time
-  useEffect(() => {
-    fetch(`/api/current-state?time=${time}`)
-      .then((res) => res.json())
-      .then(setData);
-  }, [time]);
+  // Map refs
+  const mapRef = useRef<any>(null);
+  const markerRef = useRef<any>(null);
+  const locationMarkersRef = useRef<Map<string, any>>(new Map());
+  const mapContainerRef = useRef<HTMLDivElement>(null);
 
-  // Load canon events (Telemachus for now)
+  const currentCostaRicaTime = useMemo(
+    () => formatTimeInZone(clockNow, COSTA_RICA_TIME_ZONE),
+    [clockNow],
+  );
+  const currentDublinTime = useMemo(
+    () => formatTimeInZone(clockNow, DUBLIN_TIME_ZONE),
+    [clockNow],
+  );
+
+  // Keep the displayed live clock moving.
   useEffect(() => {
-    fetch(`/api/v1/events?episode=telemachus`)
-      .then((res) => res.json())
-      .then((json) => setCanonEvents(json.events ?? []))
-      .catch(() => setCanonEvents([]));
+    const timer = window.setInterval(() => setClockNow(new Date()), 30_000);
+    return () => window.clearInterval(timer);
   }, []);
 
-  const characterState: CharacterState | null = data?.characters?.[character] ?? null;
+  // Load Google Maps SDK and initialize map
+  useEffect(() => {
+    if (mapRef.current) return; // Already initialized
+
+    const loadMapsScript = () => {
+      if ((window as any).google?.maps) {
+        initializeMap();
+        return;
+      }
+
+      const script = document.createElement("script");
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=marker`;
+      script.async = true;
+      script.onload = initializeMap;
+      document.head.appendChild(script);
+    };
+
+    const initializeMap = () => {
+      if (!mapContainerRef.current || mapRef.current) return;
+
+      const map = new (window as any).google.maps.Map(mapContainerRef.current, {
+        zoom: 14,
+        center: DUBLIN_CENTER,
+        styles: [
+          { elementType: "geometry", stylers: [{ color: "#1a1a1a" }] },
+          { elementType: "labels.text.stroke", stylers: [{ color: "#1a1a1a" }] },
+          { elementType: "labels.text.fill", stylers: [{ color: "#e0e0e0" }] },
+          {
+            featureType: "administrative.locality",
+            elementType: "labels.text.fill",
+            stylers: [{ color: "#e0e0e0" }],
+          },
+          {
+            featureType: "road",
+            elementType: "geometry",
+            stylers: [{ color: "#38414e" }],
+          },
+          {
+            featureType: "water",
+            elementType: "geometry",
+            stylers: [{ color: "#17263c" }],
+          },
+        ],
+      });
+
+      mapRef.current = map;
+
+      // Add location landmarks
+      Object.entries(DUBLIN_LOCATIONS).forEach(([locationName, locationData]) => {
+        const infoWindow = new (window as any).google.maps.InfoWindow({
+          content: `<div style="color: #000; font-weight: bold; font-size: 14px; padding: 4px 0;">${locationData.icon} ${locationName}</div>`,
+        });
+
+        const marker = new (window as any).google.maps.Marker({
+          position: { lat: locationData.lat, lng: locationData.lon },
+          map,
+          title: locationName,
+          icon: {
+            path: (window as any).google.maps.SymbolPath.CIRCLE,
+            scale: 6,
+            fillColor: "#3b82f6",
+            fillOpacity: 0.8,
+            strokeColor: "#fff",
+            strokeWeight: 2,
+          },
+        });
+
+        marker.addListener("click", () => {
+          infoWindow.open(map, marker);
+        });
+
+        locationMarkersRef.current.set(locationName, marker);
+      });
+    };
+
+    loadMapsScript();
+  }, []);
+
+  // Fetch current-state for the selected character and slider time.
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch(`/api/current-state?character=${encodeURIComponent(character)}&time=${encodeURIComponent(time)}`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (!cancelled) {
+          setData(json);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setData(null);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [character, time]);
+
+  const characterState: CharacterState | null = data?.event ?? data?.characters?.[character] ?? null;
+  const activeEpisodeId = useMemo(
+    () => slugifyEpisode(characterState?.event?.episode ?? ""),
+    [characterState?.event?.episode],
+  );
+
+  // Load canon events for the active chapter when canon mode is on.
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!canonMode || !activeEpisodeId) {
+      setCanonEvents([]);
+      return undefined;
+    }
+
+    fetch(`/api/v1/events?episode=${encodeURIComponent(activeEpisodeId)}`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (!cancelled) {
+          setCanonEvents(json.events ?? []);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setCanonEvents([]);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeEpisodeId, canonMode]);
+
+  // Update map marker when character coords change
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    const coords = characterState?.event?.coords;
+    const location = characterState?.event?.location;
+
+    if (coords) {
+      const position = { lat: coords.lat, lng: coords.lon };
+
+      if (!markerRef.current) {
+        // Create info window for character marker
+        const characterInfoWindow = new (window as any).google.maps.InfoWindow({
+          content: `<div style="color: #000; font-weight: bold; font-size: 14px; padding: 4px 0;"><span style="font-size: 16px;">👤</span> ${displayName}<br/><span style="font-size: 12px; opacity: 0.8;">${location || "Unknown location"}</span></div>`,
+        });
+
+        // Create new marker
+        markerRef.current = new (window as any).google.maps.Marker({
+          position,
+          map: mapRef.current,
+          title: location || "Character location",
+          icon: {
+            path: (window as any).google.maps.SymbolPath.CIRCLE,
+            scale: 10,
+            fillColor: "#ef4444",
+            fillOpacity: 1,
+            strokeColor: "#fff",
+            strokeWeight: 3,
+          },
+        });
+
+        markerRef.current.addListener("click", () => {
+          characterInfoWindow.open(mapRef.current, markerRef.current);
+        });
+
+        markerRef.current.characterInfoWindow = characterInfoWindow;
+      } else {
+        // Update existing marker
+        markerRef.current.setPosition(position);
+        markerRef.current.setTitle(location || "Character location");
+        
+        // Update info window content
+        if (markerRef.current.characterInfoWindow) {
+          markerRef.current.characterInfoWindow.setContent(
+            `<div style="color: #000; font-weight: bold; font-size: 14px; padding: 4px 0;"><span style="font-size: 16px;">👤</span> ${displayName}<br/><span style="font-size: 12px; opacity: 0.8;">${location || "Unknown location"}</span></div>`
+          );
+        }
+      }
+
+      // Pan map to marker
+      mapRef.current.panTo(position);
+    } else if (markerRef.current) {
+      // Remove marker if no coords
+      markerRef.current.setMap(null);
+      markerRef.current = null;
+    }
+  }, [characterState?.event?.coords, characterState?.event?.location, displayName]);
 
   return (
     <main className="min-h-screen bg-[#0b1f3a] text-white flex flex-col items-center p-8">
       {/* Top bar */}
-      <div className="w-full max-w-6xl flex items-center justify-between mb-6">
-        <Link href="/" className="text-sm opacity-80 hover:opacity-100">
-          ← Back
-        </Link>
+      <div className="w-full max-w-6xl flex flex-col gap-4 mb-6">
+        <div className="flex items-center justify-between gap-4">
+          <Link href="/" className="text-sm opacity-80 hover:opacity-100">
+            ← Back
+          </Link>
 
-        <h1 className="text-2xl font-serif tracking-wide">
-          {displayName}
-        </h1>
+          <h1 className="text-2xl font-serif tracking-wide">
+            {displayName}
+          </h1>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setCanonMode((v) => !v)}
-            className="text-sm bg-white/10 hover:bg-white/15 transition px-3 py-2 rounded-lg"
-          >
-            {canonMode ? "Hide canon" : "Canon mode"}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCanonMode((v) => !v)}
+              className="text-sm bg-white/10 hover:bg-white/15 transition px-3 py-2 rounded-lg"
+            >
+              {canonMode ? "Hide canon" : "Canon mode"}
+            </button>
 
+            <button
+              onClick={() => setTime(formatTimeInZone(new Date(), DUBLIN_TIME_ZONE))}
+              className="text-sm bg-white/10 hover:bg-white/15 transition px-3 py-2 rounded-lg"
+            >
+              Sync to now
+            </button>
+
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/85">
+          <p>
+            Costa Rica now: <span className="font-medium text-white">{currentCostaRicaTime}</span>
+            <span className="mx-2 opacity-50">·</span>
+            Dublin now: <span className="font-medium text-white">{currentDublinTime}</span>
+          </p>
+          <p className="mt-1 text-xs opacity-70">
+            The slider uses Dublin time, so the selected character stays aligned with the chapter timeline.
+          </p>
         </div>
       </div>
 
       {/* Map */}
       <div className="w-full max-w-6xl rounded-2xl overflow-hidden shadow-lg bg-black/20 mb-6 border border-white/10">
-        <iframe
-          src="https://www.google.com/maps/d/embed?mid=1S3bB22Dr4sBjckxj_jI17tMnWg0&ehbc=2E312F"
-          title="Bloomsday Character Map"
+        <div
+          ref={mapContainerRef}
           className="w-full h-[480px]"
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
+          style={{ background: "#0b1f3a" }}
         />
       </div>
 
@@ -157,7 +409,7 @@ export default function CharacterPage() {
           onChange={(e) => setTime(minutesToTime(Number(e.target.value)))}
           className="w-full"
         />
-        <p className="text-center mt-2 text-sm opacity-80">{time}</p>
+        <p className="text-center mt-2 text-sm opacity-80">Dublin time: {time}</p>
       </div>
 
       {/* Current state card */}
@@ -165,9 +417,12 @@ export default function CharacterPage() {
         {characterState ? (
           characterState.status === "active" ? (
             <>
-              <p className="text-sm opacity-80">Active</p>
-              <p className="text-xl mt-2">{characterState.event?.episode}</p>
-              <p className="text-sm opacity-70">{characterState.event?.location}</p>
+              <p className="text-sm opacity-80">Active chapter</p>
+              <p className="text-xl mt-2">{characterState.event?.episode ?? "Unknown chapter"}</p>
+              <p className="text-sm opacity-70 mt-1">{characterState.event?.location}</p>
+              {characterState.event?.description ? (
+                <p className="text-sm opacity-80 mt-3">{characterState.event.description}</p>
+              ) : null}
               {characterState.event?.coords ? (
                 <p className="text-xs opacity-60 mt-2">
                   coords: {characterState.event.coords.lat.toFixed(4)},{" "}
@@ -176,6 +431,9 @@ export default function CharacterPage() {
               ) : (
                 <p className="text-xs opacity-60 mt-2">coords: (none)</p>
               )}
+              <p className="mt-4 text-xs opacity-70">
+                Canonical time: {time} · use the slider to move the character through time and space.
+              </p>
             </>
           ) : (
             <>
@@ -195,10 +453,13 @@ export default function CharacterPage() {
       {/* Canon panel */}
       {canonMode && (
         <div className="w-full max-w-6xl mt-10 bg-white/5 backdrop-blur-lg p-6 rounded-2xl shadow-lg">
-          <h2 className="text-lg font-semibold mb-4">Canon (v1) — Telemachus</h2>
+          <h2 className="text-lg font-semibold mb-2">Canon / chapter view</h2>
+          <p className="text-sm opacity-75 mb-4">
+            Chapter: {characterState?.event?.episode ?? "Unknown"} · move the slider to shift the character’s position within the narrative timeline.
+          </p>
 
           {canonEvents.length === 0 ? (
-            <p className="text-sm opacity-70">No canon events loaded.</p>
+            <p className="text-sm opacity-70">No canon events loaded for this chapter yet.</p>
           ) : (
             <div className="space-y-4">
               {canonEvents.map((ev) => {
