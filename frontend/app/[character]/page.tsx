@@ -52,6 +52,66 @@ function slugifyEpisode(episode: string) {
     .replace(/^_+|_+$/g, "");
 }
 
+function toRadians(value: number) {
+  return (value * Math.PI) / 180;
+}
+
+function haversineDistance(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
+  const earthRadiusMeters = 6_371_000;
+  const deltaLat = toRadians(b.lat - a.lat);
+  const deltaLng = toRadians(b.lng - a.lng);
+  const lat1 = toRadians(a.lat);
+  const lat2 = toRadians(b.lat);
+
+  const haversine =
+    Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLng / 2) * Math.sin(deltaLng / 2);
+
+  return 2 * earthRadiusMeters * Math.asin(Math.sqrt(haversine));
+}
+
+function interpolatePathPoint(
+  path: Array<{ lat: number; lng: number }>,
+  progress: number,
+) {
+  if (path.length === 0) {
+    return null;
+  }
+
+  if (path.length === 1) {
+    return path[0];
+  }
+
+  const segmentLengths = path.slice(1).map((point, index) => haversineDistance(path[index], point));
+  const totalLength = segmentLengths.reduce((sum, length) => sum + length, 0);
+
+  if (totalLength === 0) {
+    return path[0];
+  }
+
+  const targetDistance = totalLength * progress;
+  let coveredDistance = 0;
+
+  for (let index = 0; index < segmentLengths.length; index += 1) {
+    const segmentLength = segmentLengths[index];
+    const segmentStart = path[index];
+    const segmentEnd = path[index + 1];
+
+    if (coveredDistance + segmentLength >= targetDistance) {
+      const segmentProgress = segmentLength === 0 ? 0 : (targetDistance - coveredDistance) / segmentLength;
+
+      return {
+        lat: segmentStart.lat + (segmentEnd.lat - segmentStart.lat) * segmentProgress,
+        lng: segmentStart.lng + (segmentEnd.lng - segmentStart.lng) * segmentProgress,
+      };
+    }
+
+    coveredDistance += segmentLength;
+  }
+
+  return path[path.length - 1];
+}
+
 // Google Maps configuration
 const GOOGLE_MAPS_API_KEY = "AIzaSyD_hRUxCbfp9oAUpzkGXVyosIITVYlRrrM";
 const DUBLIN_CENTER = { lat: 53.3398, lng: -6.2603 };
@@ -147,9 +207,11 @@ export default function CharacterPage() {
   const markerRef = useRef<any>(null);
   const travelDotRef = useRef<any>(null);
   const travelLineRef = useRef<any>(null);
+  const directionsRendererRef = useRef<any>(null);
   const locationMarkersRef = useRef<Map<string, any>>(new Map());
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const travelFrameRef = useRef<number | null>(null);
+  const routeRequestIdRef = useRef(0);
 
   const currentCostaRicaTime = useMemo(
     () => formatTimeInZone(clockNow, COSTA_RICA_TIME_ZONE),
@@ -316,10 +378,18 @@ export default function CharacterPage() {
       travelLineRef.current = null;
     }
 
+    if (directionsRendererRef.current) {
+      directionsRendererRef.current.setMap(null);
+      directionsRendererRef.current = null;
+    }
+
     if (travelDotRef.current) {
       travelDotRef.current.setMap(null);
       travelDotRef.current = null;
     }
+
+    routeRequestIdRef.current += 1;
+    const routeRequestId = routeRequestIdRef.current;
 
     const coords = characterState?.event?.coords;
     const location = characterState?.event?.location;
@@ -374,46 +444,93 @@ export default function CharacterPage() {
       if (nextCoords) {
         const nextPosition = { lat: nextCoords.lat, lng: nextCoords.lon };
 
-        travelLineRef.current = new (window as any).google.maps.Polyline({
-          path: [position, nextPosition],
-          geodesic: true,
-          strokeColor: "#f59e0b",
-          strokeOpacity: 0.9,
-          strokeWeight: 4,
+        const directionsService = new (window as any).google.maps.DirectionsService();
+        directionsRendererRef.current = new (window as any).google.maps.DirectionsRenderer({
           map: mapRef.current,
-        });
-
-        travelDotRef.current = new (window as any).google.maps.Marker({
-          position,
-          map: mapRef.current,
-          title: "Travel path",
-          icon: {
-            path: (window as any).google.maps.SymbolPath.CIRCLE,
-            scale: 8,
-            fillColor: "#fbbf24",
-            fillOpacity: 1,
-            strokeColor: "#111827",
-            strokeWeight: 2,
+          suppressMarkers: true,
+          polylineOptions: {
+            strokeColor: "#f59e0b",
+            strokeOpacity: 0.9,
+            strokeWeight: 4,
           },
-          zIndex: 999,
         });
 
-        const start = performance.now();
-        const duration = 4000;
+        directionsService.route(
+          {
+            origin: position,
+            destination: nextPosition,
+            travelMode: (window as any).google.maps.TravelMode.WALKING,
+          },
+          (result: any, status: any) => {
+            if (routeRequestIdRef.current !== routeRequestId) {
+              return;
+            }
 
-        const animate = (timestamp: number) => {
-          if (!travelDotRef.current) return;
+            const routePath =
+              result?.routes?.[0]?.overview_path?.map((point: any) => ({
+                lat: typeof point.lat === "function" ? point.lat() : point.lat,
+                lng: typeof point.lng === "function" ? point.lng() : point.lng,
+              })) ?? [];
 
-          const elapsed = (timestamp - start) % duration;
-          const t = elapsed / duration;
-          const lat = position.lat + (nextPosition.lat - position.lat) * t;
-          const lng = position.lng + (nextPosition.lng - position.lng) * t;
+            if (
+              status === (window as any).google.maps.DirectionsStatus.OK &&
+              result &&
+              directionsRendererRef.current
+            ) {
+              directionsRendererRef.current.setDirections(result);
+            } else {
+              travelLineRef.current = new (window as any).google.maps.Polyline({
+                path: [position, nextPosition],
+                geodesic: true,
+                strokeColor: "#f59e0b",
+                strokeOpacity: 0.9,
+                strokeWeight: 4,
+                map: mapRef.current,
+              });
+            }
 
-          travelDotRef.current.setPosition({ lat, lng });
-          travelFrameRef.current = window.requestAnimationFrame(animate);
-        };
+            const animationPath = routePath.length > 1 ? routePath : [position, nextPosition];
 
-        travelFrameRef.current = window.requestAnimationFrame(animate);
+            if (travelDotRef.current) {
+              travelDotRef.current.setMap(null);
+              travelDotRef.current = null;
+            }
+
+            travelDotRef.current = new (window as any).google.maps.Marker({
+              position,
+              map: mapRef.current,
+              title: "Travel path",
+              icon: {
+                path: (window as any).google.maps.SymbolPath.CIRCLE,
+                scale: 8,
+                fillColor: "#fbbf24",
+                fillOpacity: 1,
+                strokeColor: "#111827",
+                strokeWeight: 2,
+              },
+              zIndex: 999,
+            });
+
+            const start = performance.now();
+            const duration = 12000;
+
+            const animate = (timestamp: number) => {
+              if (!travelDotRef.current || routeRequestIdRef.current !== routeRequestId) return;
+
+              const elapsed = (timestamp - start) % duration;
+              const t = elapsed / duration;
+              const pathPoint = interpolatePathPoint(animationPath, t);
+
+              if (pathPoint) {
+                travelDotRef.current.setPosition(pathPoint);
+              }
+
+              travelFrameRef.current = window.requestAnimationFrame(animate);
+            };
+
+            travelFrameRef.current = window.requestAnimationFrame(animate);
+          },
+        );
       }
     } else if (markerRef.current) {
       // Remove marker if no coords
@@ -440,7 +557,7 @@ export default function CharacterPage() {
               onClick={() => setUseGeneratedTimeline((v) => !v)}
               className={`text-sm transition px-3 py-2 rounded-lg ${useGeneratedTimeline ? "bg-emerald-500/30 hover:bg-emerald-500/40" : "bg-white/10 hover:bg-white/15"}`}
             >
-              {useGeneratedTimeline ? "15-min path on" : "Standard timeline on"}
+              {useGeneratedTimeline ? "Route path on" : "Standard timeline on"}
             </button>
 
             <button
@@ -469,7 +586,7 @@ export default function CharacterPage() {
           <p className="mt-1 text-xs opacity-70">
             The slider uses Dublin time, so the selected character stays aligned with the chapter timeline.
             {useGeneratedTimeline
-              ? " 15-minute waypoint data is enabled, so the map shows a smoother travel path between stops."
+              ? " 15-minute waypoint data is enabled, so the map shows a smoother route between stops."
               : " Standard timeline data is enabled, so the map jumps between major story anchors."}
           </p>
         </div>
@@ -486,7 +603,7 @@ export default function CharacterPage() {
 
       <div className="w-full max-w-6xl mb-6 flex flex-wrap items-center gap-3 text-xs text-white/80">
         <span className="rounded-full bg-red-500/20 px-3 py-1 border border-red-400/30">Red dot = current character position</span>
-        <span className="rounded-full bg-amber-500/20 px-3 py-1 border border-amber-400/30">Amber dot + line = moving travel path</span>
+        <span className="rounded-full bg-amber-500/20 px-3 py-1 border border-amber-400/30">Amber dot + line = route path between stops</span>
         <span className="rounded-full bg-blue-500/20 px-3 py-1 border border-blue-400/30">Blue dots = Dublin landmarks</span>
       </div>
 
